@@ -1,6 +1,7 @@
 package com.yashdalfthegray.expressivecountdown
 
 import android.content.Context
+import androidx.compose.runtime.Composable
 import androidx.glance.layout.Box
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -16,13 +17,21 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
-            GlanceTheme {
-                Box(modifier = GlanceModifier.fillMaxSize()) {
-                    Text(
-                        text = "?? Days",
-                        style = TextStyle(fontSize = 28.sp)
+            WidgetContent()
+        }
+    }
+
+    @Composable
+    private fun WidgetContent() {
+        GlanceTheme {
+            Box(modifier = GlanceModifier.fillMaxSize()) {
+                Text(
+                    text = "?? Days",
+                    style = TextStyle(
+                        fontSize = 28.sp,
+                        color = GlanceTheme.colors.onSurface
                     )
-                }
+                )
             }
         }
     }
