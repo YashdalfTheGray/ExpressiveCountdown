@@ -16,17 +16,23 @@ import androidx.glance.layout.fillMaxSize
 class ExpressiveCountdownWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val clock = java.time.Clock.systemDefaultZone()
+        val target = java.time.LocalDate.of(2025, 12, 31) // just for testing
+        val n = daysLeft(clock, target)
+        val label = if (n == 1L) "1 day" else "$n days"
+
+
         provideContent {
-            WidgetContent()
+            WidgetContent(label)
         }
     }
 
     @Composable
-    private fun WidgetContent() {
+    private fun WidgetContent(label: String) {
         GlanceTheme {
             Box(modifier = GlanceModifier.fillMaxSize()) {
                 Text(
-                    text = "?? Days",
+                    text = label,
                     style = TextStyle(
                         fontSize = 28.sp,
                         color = GlanceTheme.colors.onSurface
