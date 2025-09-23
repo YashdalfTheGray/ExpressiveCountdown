@@ -19,6 +19,11 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.updateAll
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class ExpressiveCountdownConfigureActivity : ComponentActivity() {
     private var appWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -66,17 +71,26 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
     }
 
     private fun onDone() {
-        val manager = AppWidgetManager.getInstance(this)
-        manager.bindAppWidgetIdIfAllowed(
-            appWidgetId,
-            ComponentName(this, ExpressiveCountdownWidget::class.java)
-        )
+        val day = (1..31).random()
+        val target = LocalDate.of(2025, 12, day)
+        CountdownPreferences.saveTargetDate(this, appWidgetId, target)
+        val retrieved = CountdownPreferences.loadTargetDate(this, appWidgetId)
+        Log.d("ExpressiveCountdownConfigureActivity", "Retrieved target date: $retrieved")
+
         val resultValue = Intent().putExtra(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             appWidgetId
         )
-        Log.d("ExpressiveCountdownConfigureActivity", "RETURNING FUCKING RESULT_OK FOR ID $appWidgetId")
         setResult(Activity.RESULT_OK, resultValue)
+
+        val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
+            component = ComponentName(
+                this@ExpressiveCountdownConfigureActivity,
+                ExpressiveCountdownWidget::class.java
+            )
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
+        }
+        sendBroadcast(intent)
 
         finish()
     }
