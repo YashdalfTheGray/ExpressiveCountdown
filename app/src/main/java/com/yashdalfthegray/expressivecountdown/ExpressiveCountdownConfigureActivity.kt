@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,11 +28,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 
 class ExpressiveCountdownConfigureActivity : ComponentActivity() {
@@ -57,20 +63,24 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
             return
         }
 
+        var outerTitle by mutableStateOf("")
+        var outerPickerState: DatePickerState? = null
+
         setContent {
             MaterialTheme {
                 val pickerState = rememberDatePickerState(
                     initialSelectedDateMillis = System.currentTimeMillis()
                 )
-                var title by rememberSaveable { mutableStateOf("") }
+                LaunchedEffect(Unit) { outerPickerState = pickerState }
+                var title by rememberSaveable { mutableStateOf(outerTitle) }
 
                 val selectedMillis = pickerState.selectedDateMillis
                 val doneEnabled = selectedMillis != null
 
                 val previewLabel = remember(selectedMillis) {
                     selectedMillis?.let {
-                        val target = java.time.Instant.ofEpochMilli(it)
-                            .atZone(java.time.ZoneId.systemDefault())
+                        val target = Instant.ofEpochMilli(it)
+                            .atZone(ZoneId.systemDefault())
                             .toLocalDate()
                         val daysToTarget = daysLeft(
                             java.time.Clock.systemDefaultZone(),
@@ -92,7 +102,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                         ),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Expressive Countdown setup")
+                        Text("Configure your countdown")
                         OutlinedTextField(
                             value = title,
                             onValueChange = { title = it },
@@ -109,6 +119,35 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                                 }
                             }
                         ) { Text("Done") }
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            val manager = GlanceAppWidgetManager(this@ExpressiveCountdownConfigureActivity)
+            val glanceId = manager.getGlanceIdBy(appWidgetId)
+            val prefs = getAppWidgetState(
+                context = this@ExpressiveCountdownConfigureActivity,
+                definition = PreferencesGlanceStateDefinition,
+                glanceId = glanceId
+            )
+
+            val storedTitle = prefs[WidgetPreferencesKeys.TITLE] ?: ""
+            val storedDate = prefs[WidgetPreferencesKeys.TARGET_DATE]?.let { LocalDate.parse(it) }
+
+            withContext(Dispatchers.Main) {
+                outerTitle = storedTitle
+
+                storedDate?.let {
+                    val millis = it
+                        .atStartOfDay(ZoneId.systemDefault())
+                        .toInstant()
+                        .toEpochMilli()
+
+                    outerPickerState?.apply {
+                        selectedDateMillis = millis
+                        displayedMonthMillis = millis
                     }
                 }
             }
