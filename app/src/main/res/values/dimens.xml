@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="padding_m">8dp</dimen>
+    <dimen name="padding_l">12dp</dimen>
+    <dimen name="activity_padding">24dp</dimen>
+    <dimen name="vertical_spacing">16dp</dimen>
+
+</resources>

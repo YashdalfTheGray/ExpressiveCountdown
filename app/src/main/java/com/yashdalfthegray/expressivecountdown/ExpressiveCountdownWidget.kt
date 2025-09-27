@@ -34,11 +34,13 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
             val title = prefs[WidgetPreferencesKeys.TITLE]
             val target = targetString?.let { LocalDate.parse(it) }
 
-            var label = "Set a date"
-            if (target != null) {
+            val label: String = if (target == null) {
+                context.getString(R.string.config_pick_date)
+            } else {
                 val days = daysLeft(java.time.Clock.systemDefaultZone(), target)
-                label = if (days == 1L) "1 day" else "$days days"
+                context.resources.getQuantityString(R.plurals.days_left, days.toInt(), days)
             }
+
             WidgetContent(label, title ?: "")
         }
     }

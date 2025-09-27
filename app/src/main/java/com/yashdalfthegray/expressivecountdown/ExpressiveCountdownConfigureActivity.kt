@@ -30,7 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
@@ -146,44 +147,48 @@ private fun ConfigureScreen(
         }
     }
 
+
     val previewLabel = dateState.selectedDateMillis?.let { millis ->
         val target = Instant.ofEpochMilli(millis)
             .atZone(ZoneId.systemDefault())
             .toLocalDate()
         val n = daysLeft(Clock.systemDefaultZone(), target)
-        if (n == 1L) "1 day" else "$n days"
-    } ?: "Pick a date"
+        if (n == 1L) stringResource(R.string.one_day) else context.getString(R.string.many_days, n)
+    } ?: stringResource(R.string.config_pick_date)
+
+    val paddingm = dimensionResource(R.dimen.padding_m)
+    val paddingl = dimensionResource(R.dimen.padding_l)
 
     MaterialTheme {
         Surface(Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .padding(dimensionResource(R.dimen.activity_padding)),
                 verticalArrangement = Arrangement.spacedBy(
-                    16.dp,
+                    dimensionResource(R.dimen.vertical_spacing),
                     Alignment.CenterVertically
                 ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Setup your countdown")
+                Text(stringResource(R.string.config_title))
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(paddingl))
 
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(R.string.config_text_name)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(paddingm))
 
                 DatePicker(state = dateState)
                 Text(previewLabel)
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(paddingm))
 
                 Button(
                     enabled = dateState.selectedDateMillis != null,
@@ -192,7 +197,7 @@ private fun ConfigureScreen(
                             scope.launch { onComplete(millis, title) }
                         }
                     }
-                ) { Text("Done") }
+                ) { Text(stringResource(R.string.config_done)) }
             }
         }
     }

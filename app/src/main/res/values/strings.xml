@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Expressive Countdown</string>
+    <string name="config_title">Setup your countdown</string>
+    <string name="config_done">Done</string>
+    <string name="config_pick_date">Pick a date</string>
+    <string name="config_text_name">Name</string>
+    <string name="one_day">1 day</string>
+    <string name="many_days">%1$d days</string>
+    <string name="set_date">Set a date</string>
 </resources>
