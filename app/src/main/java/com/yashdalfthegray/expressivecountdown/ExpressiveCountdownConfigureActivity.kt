@@ -7,7 +7,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
@@ -56,9 +58,8 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
             appWidgetId
         )
 
-        setResult(RESULT_CANCELED, resultValue)
-
         if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            setResult(RESULT_CANCELED)
             finish()
             return
         }
@@ -103,14 +104,23 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text("Configure your countdown")
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
                         OutlinedTextField(
                             value = title,
                             onValueChange = { title = it },
                             label = { Text("Name") },
                             singleLine = true
                         )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
                         DatePicker(state = pickerState)
                         Text(previewLabel)
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
                         Button(
                             enabled = doneEnabled,
                             onClick = {
