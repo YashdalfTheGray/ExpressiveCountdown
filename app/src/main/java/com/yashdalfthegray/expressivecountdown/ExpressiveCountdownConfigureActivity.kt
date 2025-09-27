@@ -10,9 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,11 +25,14 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 
 class ExpressiveCountdownConfigureActivity : ComponentActivity() {
     private var appWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -48,6 +55,27 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
+                val pickerState = rememberDatePickerState(
+                    initialSelectedDateMillis = System.currentTimeMillis()
+                )
+
+                val selectedMillis = pickerState.selectedDateMillis
+                val doneEnabled = selectedMillis != null
+
+                val previewLabel = remember(selectedMillis) {
+                    selectedMillis?.let {
+                        val target = java.time.Instant.ofEpochMilli(it)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toLocalDate()
+                        val daysToTarget = daysLeft(
+                            java.time.Clock.systemDefaultZone(),
+                            target
+                        )
+
+                        if (daysToTarget == 1L) "1 day" else "$daysToTarget days"
+                    } ?: "Select a date"
+                }
+
                 Surface(Modifier.fillMaxSize()) {
                     Column(
                         modifier = Modifier
@@ -60,17 +88,32 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text("Expressive Countdown setup")
-
-                        Button(onClick = { onDone() }) { Text("Done") }
+                        DatePicker(state = pickerState)
+                        Text(previewLabel)
+                        Button(
+                            enabled = doneEnabled,
+                            onClick = { selectedMillis?.let { onDone(it) } }
+                        ) { Text("Done") }
                     }
                 }
             }
         }
     }
 
-    private fun onDone() {
-        val day = (1..31).random()
-        val target = LocalDate.of(2025, 12, day)
+    private fun onDone(selectedDateMillis: Long) {
+        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            val resultValue = Intent().putExtra(
+                AppWidgetManager.EXTRA_APPWIDGET_ID,
+                appWidgetId
+            )
+            setResult(RESULT_CANCELED, resultValue)
+            finish()
+            return
+        }
+
+        val target = Instant.ofEpochMilli(selectedDateMillis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
 
         lifecycleScope.launch {
             val manager = GlanceAppWidgetManager(this@ExpressiveCountdownConfigureActivity)
