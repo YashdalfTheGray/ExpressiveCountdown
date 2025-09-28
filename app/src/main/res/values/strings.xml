@@ -7,4 +7,8 @@
     <string name="one_day">1 day</string>
     <string name="many_days">%1$d days</string>
     <string name="set_date">Set a date</string>
+    <string name="config_set_color_mode">Color mode</string>
+    <string name="color_mode_system">System</string>
+    <string name="color_mode_custom">Custom</string>
+    <string name="color_mode_photo">Photo</string>
 </resources>

@@ -12,3 +12,9 @@ object WidgetPreferencesKeys {
     val IMAGE_URL = stringPreferencesKey("image_url")
     val LAST_REFRESH = longPreferencesKey("last_refresh")
 }
+
+enum class ColorMode {
+    System,
+    Custom,
+    Photo
+}
