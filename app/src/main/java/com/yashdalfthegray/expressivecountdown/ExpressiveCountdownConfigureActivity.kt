@@ -46,6 +46,7 @@ import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
+import com.yashdalfthegray.expressivecountdown.ui.theme.ExpressiveCountdownTheme
 import kotlinx.coroutines.launch
 import java.time.Clock
 import java.time.Instant
@@ -73,16 +74,18 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
         setResult(RESULT_CANCELED)
 
         setContent {
-            ConfigureScreen(
-                appWidgetId = appWidgetId,
-                onComplete = { millis, title, colorMode ->
-                    onDone(millis, title, colorMode)
-                },
-                onCancel = {
-                    setResult(RESULT_CANCELED)
-                    finish()
-                }
-            )
+            ExpressiveCountdownTheme {
+                ConfigureScreen(
+                    appWidgetId = appWidgetId,
+                    onComplete = { millis, title, colorMode ->
+                        onDone(millis, title, colorMode)
+                    },
+                    onCancel = {
+                        setResult(RESULT_CANCELED)
+                        finish()
+                    }
+                )
+            }
         }
     }
 
@@ -177,100 +180,99 @@ private fun ConfigureScreen(
 
     val canComplete = dateState.selectedDateMillis != null
 
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.config_title)) },
-                    navigationIcon = {
-                        IconButton(onClick = onCancel) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Cancel"
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = {
-                                dateState.selectedDateMillis?.let { millis ->
-                                    scope.launch {
-                                        onComplete(millis, title, colorMode)
-                                    }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.config_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onCancel) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Cancel"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            dateState.selectedDateMillis?.let { millis ->
+                                scope.launch {
+                                    onComplete(millis, title, colorMode)
                                 }
-                            },
-                            enabled = canComplete
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Done"
-                            )
-                        }
-                    }
-                )
-            }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(dimensionResource(R.dimen.activity_padding))
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(
-                    dimensionResource(R.dimen.vertical_spacing)
-                ),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text(stringResource(R.string.config_text_name)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Text(
-                    text = stringResource(R.string.config_set_color_mode),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
-                        onClick = { colorMode = ColorMode.System },
-                        selected = colorMode == ColorMode.System
+                            }
+                        },
+                        enabled = canComplete
                     ) {
-                        Text(text = stringResource(R.string.color_mode_system))
-                    }
-
-                    SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
-                        onClick = { colorMode = ColorMode.Custom },
-                        selected = colorMode == ColorMode.Custom
-                    ) {
-                        Text(text = stringResource(R.string.color_mode_custom))
-                    }
-
-                    SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
-                        onClick = { colorMode = ColorMode.Photo },
-                        selected = colorMode == ColorMode.Photo
-                    ) {
-                        Text(text = stringResource(R.string.color_mode_photo))
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Done"
+                        )
                     }
                 }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(dimensionResource(R.dimen.activity_padding))
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(
+                dimensionResource(R.dimen.vertical_spacing)
+            ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text(stringResource(R.string.config_text_name)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                DatePicker(state = dateState)
+            Text(
+                text = stringResource(R.string.config_set_color_mode),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                Text(
-                    text = previewLabel,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
+                    onClick = { colorMode = ColorMode.System },
+                    selected = colorMode == ColorMode.System
+                ) {
+                    Text(text = stringResource(R.string.color_mode_system))
+                }
+
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
+                    onClick = { colorMode = ColorMode.Custom },
+                    selected = colorMode == ColorMode.Custom
+                ) {
+                    Text(text = stringResource(R.string.color_mode_custom))
+                }
+
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
+                    onClick = { colorMode = ColorMode.Photo },
+                    selected = colorMode == ColorMode.Photo
+                ) {
+                    Text(text = stringResource(R.string.color_mode_photo))
+                }
             }
+
+            DatePicker(state = dateState)
+
+            Text(
+                text = previewLabel,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
+
 }
