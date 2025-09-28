@@ -97,7 +97,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                 ?: return@launch
 
             val target = Instant.ofEpochMilli(selectedDateMillis)
-                .atZone(ZoneId.systemDefault())
+                .atZone(ZoneId.of("UTC"))
                 .toLocalDate()
 
             updateAppWidgetState(
@@ -161,10 +161,12 @@ private fun ConfigureScreen(
                 title = storedTitle
                 colorMode = storedColorMode
                 storedDate?.let { date ->
-                    val millis = date.atStartOfDay(ZoneId.systemDefault())
+                    val millis = date.atStartOfDay(ZoneId.of("UTC"))
                         .toInstant()
                         .toEpochMilli()
+
                     dateState.selectedDateMillis = millis
+                    dateState.displayedMonthMillis = millis
                 }
             }
         }
@@ -172,7 +174,7 @@ private fun ConfigureScreen(
 
     val previewLabel = dateState.selectedDateMillis?.let { millis ->
         val target = Instant.ofEpochMilli(millis)
-            .atZone(ZoneId.systemDefault())
+            .atZone(ZoneId.of("UTC"))
             .toLocalDate()
         val n = daysLeft(Clock.systemDefaultZone(), target)
         if (n == 1L) stringResource(R.string.one_day) else context.getString(R.string.many_days, n)
