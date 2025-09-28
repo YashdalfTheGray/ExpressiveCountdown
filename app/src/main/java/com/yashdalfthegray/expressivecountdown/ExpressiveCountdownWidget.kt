@@ -1,6 +1,7 @@
 package com.yashdalfthegray.expressivecountdown
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -10,6 +11,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.provideContent
+import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -29,55 +31,71 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
-            val prefs = currentState<Preferences>()
-            val targetString = prefs[WidgetPreferencesKeys.TARGET_DATE]
-            val title = prefs[WidgetPreferencesKeys.TITLE]
-            val target = targetString?.let { LocalDate.parse(it) }
+            GlanceTheme {
+                val prefs = currentState<Preferences>()
+                val targetString = prefs[WidgetPreferencesKeys.TARGET_DATE]
+                val title = prefs[WidgetPreferencesKeys.TITLE]
+                val colorMode = prefs[WidgetPreferencesKeys.COLOR_MODE]?.let {
+                    runCatching { ColorMode.valueOf(it) }.getOrNull()
+                } ?: ColorMode.System
+                val target = targetString?.let { LocalDate.parse(it) }
 
-            val label: String = if (target == null) {
-                context.getString(R.string.config_pick_date)
-            } else {
-                val days = daysLeft(java.time.Clock.systemDefaultZone(), target)
-                context.resources.getQuantityString(R.plurals.days_left, days.toInt(), days)
+                val daysLeftStr: String = if (target == null) {
+                    context.getString(R.string.config_pick_date)
+                } else {
+                    val days = daysLeft(java.time.Clock.systemDefaultZone(), target)
+                    context.resources.getQuantityString(R.plurals.days_left, days.toInt(), days)
+                }
+
+                Log.d("ExpressiveCountdownWidget", "daysLeftStr: $daysLeftStr")
+
+                WidgetContent(
+                    daysLeftStr = daysLeftStr,
+                    title = title ?: "",
+                    colorMode = colorMode
+                )
             }
-
-            WidgetContent(label, title ?: "")
         }
     }
 
     @Composable
-    private fun WidgetContent(label: String, title: String) {
-        GlanceTheme {
-            Column(
-                modifier = GlanceModifier.fillMaxSize().padding(8.dp),
-            ) {
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth()
-                ) {
-                    if (title.isNotBlank()) {
-                        Text(
-                            text = title,
-                            style = TextStyle(
-                                fontSize = 28.sp,
-                                color = GlanceTheme.colors.onSurface,
-                            )
-                        )
-                    }
-                }
-
-                Spacer(modifier = GlanceModifier.defaultWeight())
-
+    private fun WidgetContent(
+        daysLeftStr: String,
+        title: String,
+        colorMode: ColorMode
+    ) {
+        Column(
+            modifier = GlanceModifier
+                .fillMaxSize()
+                .background(GlanceTheme.colors.widgetBackground)
+                .padding(8.dp),
+        ) {
+            if (title.isNotBlank()) {
                 Row(
                     modifier = GlanceModifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = label,
+                        text = title,
                         style = TextStyle(
-                            fontSize = 28.sp,
+                            fontSize = 24.sp,
                             color = GlanceTheme.colors.onSurface,
                         )
                     )
                 }
+            }
+
+            Spacer(modifier = GlanceModifier.defaultWeight())
+
+            Row(
+                modifier = GlanceModifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = daysLeftStr,
+                    style = TextStyle(
+                        fontSize = 32.sp,
+                        color = GlanceTheme.colors.onSurface,
+                    )
+                )
             }
         }
     }
