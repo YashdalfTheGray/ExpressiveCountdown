@@ -93,7 +93,7 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                     text = daysLeftStr,
                     style = TextStyle(
                         fontSize = 32.sp,
-                        color = GlanceTheme.colors.onSurface,
+                        color = GlanceTheme.colors.primary,
                     )
                 )
             }
