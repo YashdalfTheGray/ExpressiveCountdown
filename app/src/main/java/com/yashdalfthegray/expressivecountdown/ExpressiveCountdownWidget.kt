@@ -17,10 +17,8 @@ import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Column
-import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
@@ -58,8 +56,6 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                     context.resources.getQuantityString(R.plurals.days_left, days.toInt(), days)
                 }
 
-                Log.d("ExpressiveCountdownWidget", "daysLeftStr: $daysLeftStr")
-
                 WidgetContent(
                     daysLeftStr = daysLeftStr,
                     title = title ?: "",
@@ -76,8 +72,22 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
         colorMode: ColorMode
     ) {
         val size = LocalSize.current
-        val titleFontSize = if (isSmall(size)) 16.sp else if (isMedium(size)) 20.sp else 24.sp
-        val countdownFontSize = if (isSmall(size)) 24.sp else if (isMedium(size)) 32.sp else 40.sp
+
+        val titleFontSize = when {
+            size.width < 120.dp -> 12.sp
+            size.width < 160.dp -> 18.sp
+            else -> 28.sp
+        }
+        val countdownFontSize = when {
+            size.width < 120.dp -> 16.sp
+            size.width < 160.dp -> 24.sp
+            else -> 36.sp
+        }
+        Log.d("ExpressiveCountdownWidget", "FUCKING SIZE: $size")
+        Log.d("ExpressiveCountdownWidget", "FUCKING SMALL CONDITION: ${size.width < 120.dp}")
+        Log.d("ExpressiveCountdownWidget", "FUCKING MEDIUM CONDITION: ${size.width >= 120.dp && size.width < 160.dp}")
+        Log.d("ExpressiveCountdownWidget", "FUCKING TITLE FONT SIZE: $titleFontSize")
+        Log.d("ExpressiveCountdownWidget", "FUCKING COUNTDOWN FONT SIZE: $countdownFontSize")
 
         Column(
             modifier = GlanceModifier
@@ -86,40 +96,24 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                 .padding(8.dp),
         ) {
             if (title.isNotBlank()) {
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = title,
-                        style = TextStyle(
-                            fontSize = titleFontSize,
-                            color = GlanceTheme.colors.onSurface,
-                        )
+                Text(
+                    text = title,
+                    style = TextStyle(
+                        fontSize = titleFontSize,
+                        color = GlanceTheme.colors.onSurface,
                     )
-                }
+                )
             }
 
             Spacer(modifier = GlanceModifier.defaultWeight())
 
-            Row(
-                modifier = GlanceModifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = daysLeftStr,
-                    style = TextStyle(
-                        fontSize = countdownFontSize,
-                        color = GlanceTheme.colors.primary,
-                    )
+            Text(
+                text = daysLeftStr,
+                style = TextStyle(
+                    fontSize = countdownFontSize,
+                    color = GlanceTheme.colors.primary,
                 )
-            }
+            )
         }
-    }
-
-    private fun isSmall(size: DpSize): Boolean {
-        return size.width < 120.dp || size.height < 80.dp
-    }
-
-    private fun isMedium(size: DpSize): Boolean {
-        return size.width < 160.dp || size.height < 120.dp
     }
 }
