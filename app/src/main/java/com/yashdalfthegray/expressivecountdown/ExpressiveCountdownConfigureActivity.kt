@@ -2,6 +2,8 @@ package com.yashdalfthegray.expressivecountdown
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,6 +29,8 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,6 +41,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
@@ -52,6 +58,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import androidx.core.graphics.drawable.toDrawable
 
 class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 
@@ -59,6 +66,17 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val dynamicColorScheme = if (resources.configuration.uiMode and
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+                dynamicDarkColorScheme(this)
+            } else {
+                dynamicLightColorScheme(this)
+            }
+            window.setBackgroundDrawable(dynamicColorScheme.background.toArgb().toDrawable())
+        }
 
         appWidgetId = intent?.getIntExtra(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
@@ -137,6 +155,7 @@ private fun ConfigureScreen(
     var title by rememberSaveable { mutableStateOf("") }
     val dateState = rememberDatePickerState(initialSelectedDateMillis = null)
     var colorMode by rememberSaveable { mutableStateOf(ColorMode.System) }
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(appWidgetId) {
         val manager = AppWidgetManager.getInstance(context)
@@ -181,6 +200,7 @@ private fun ConfigureScreen(
     } ?: stringResource(R.string.config_pick_date)
 
     val canComplete = dateState.selectedDateMillis != null
+    val hasPhoto = false;
 
     Scaffold(
         topBar = {
@@ -260,12 +280,31 @@ private fun ConfigureScreen(
 
                 SegmentedButton(
                     shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
-                    onClick = { colorMode = ColorMode.Photo },
-                    selected = colorMode == ColorMode.Photo
+                    onClick = {
+                        if (hasPhoto) {
+                            colorMode = ColorMode.Photo
+                        }
+                    },
+                    selected = colorMode == ColorMode.Photo,
+                    enabled = hasPhoto,
+                    colors = SegmentedButtonDefaults.colors(
+                        disabledActiveContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                        disabledActiveContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                        disabledInactiveContainerColor = Color.Transparent,
+                        disabledInactiveContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    )
                 ) {
                     Text(text = stringResource(R.string.color_mode_photo))
                 }
             }
+            Text(
+                text = stringResource(R.string.photo_button_message),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = dimensionResource(R.dimen.padding_s))
+            )
 
             DatePicker(state = dateState)
 

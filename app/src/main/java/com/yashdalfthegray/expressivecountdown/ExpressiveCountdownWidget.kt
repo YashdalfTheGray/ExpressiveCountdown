@@ -1,7 +1,6 @@
 package com.yashdalfthegray.expressivecountdown
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -83,11 +82,6 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
             size.width < 160.dp -> 24.sp
             else -> 36.sp
         }
-        Log.d("ExpressiveCountdownWidget", "FUCKING SIZE: $size")
-        Log.d("ExpressiveCountdownWidget", "FUCKING SMALL CONDITION: ${size.width < 120.dp}")
-        Log.d("ExpressiveCountdownWidget", "FUCKING MEDIUM CONDITION: ${size.width >= 120.dp && size.width < 160.dp}")
-        Log.d("ExpressiveCountdownWidget", "FUCKING TITLE FONT SIZE: $titleFontSize")
-        Log.d("ExpressiveCountdownWidget", "FUCKING COUNTDOWN FONT SIZE: $countdownFontSize")
 
         Column(
             modifier = GlanceModifier
