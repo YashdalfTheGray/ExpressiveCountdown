@@ -10,23 +10,28 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -58,6 +63,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import androidx.core.graphics.drawable.toDrawable
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 
@@ -252,6 +259,57 @@ private fun ConfigureScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            OutlinedButton(
+                onClick = { showDatePicker = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = dateState.selectedDateMillis?.let { millis ->
+                        val date = java.time.Instant.ofEpochMilli(millis)
+                            .atZone(java.time.ZoneId.of("UTC"))
+                            .toLocalDate()
+                        val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+                        date.format(formatter)
+                    } ?: stringResource(R.string.config_pick_date)
+                )
+            }
+
+            if (showDatePicker) {
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showDatePicker = false
+                            }
+                        ) {
+                            Text(stringResource(R.string.datepicker_dialog_confirm))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                showDatePicker = false
+                            }
+                        ) {
+                            Text(stringResource(R.string.datepicker_dialog_cancel))
+                        }
+                    }
+                ) {
+                    DatePicker(state = dateState)
+                }
+            }
+
+            Text(
+                text = dateState.selectedDateMillis?.let { previewLabel } ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(dimensionResource(R.dimen.empty_label_height))
+                    .wrapContentWidth(Alignment.CenterHorizontally)
+            )
+
             Text(
                 text = stringResource(R.string.config_set_color_mode),
                 style = MaterialTheme.typography.titleMedium,
@@ -303,14 +361,6 @@ private fun ConfigureScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = dimensionResource(R.dimen.padding_s))
-            )
-
-            DatePicker(state = dateState)
-
-            Text(
-                text = previewLabel,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
