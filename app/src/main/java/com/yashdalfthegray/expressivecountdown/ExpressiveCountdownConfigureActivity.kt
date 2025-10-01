@@ -2,7 +2,6 @@ package com.yashdalfthegray.expressivecountdown
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -200,7 +199,7 @@ private fun ConfigureScreen(
     } ?: stringResource(R.string.config_pick_date)
 
     val canComplete = dateState.selectedDateMillis != null
-    val hasPhoto = false;
+    val hasPhoto = false
 
     Scaffold(
         topBar = {
