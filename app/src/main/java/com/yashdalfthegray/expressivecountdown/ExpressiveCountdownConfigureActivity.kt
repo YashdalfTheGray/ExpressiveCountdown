@@ -2,22 +2,35 @@ package com.yashdalfthegray.expressivecountdown
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,8 +58,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
@@ -63,6 +78,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import androidx.core.graphics.drawable.toDrawable
+import coil.compose.rememberAsyncImagePainter
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -162,6 +178,13 @@ private fun ConfigureScreen(
     val dateState = rememberDatePickerState(initialSelectedDateMillis = null)
     var colorMode by rememberSaveable { mutableStateOf(ColorMode.System) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var selectedPhotoUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+
+    val pickMedia = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        selectedPhotoUri = uri
+    }
 
     LaunchedEffect(appWidgetId) {
         val manager = AppWidgetManager.getInstance(context)
@@ -206,7 +229,7 @@ private fun ConfigureScreen(
     } ?: stringResource(R.string.config_pick_date)
 
     val canComplete = dateState.selectedDateMillis != null
-    val hasPhoto = false
+    val hasPhoto = selectedPhotoUri != null
 
     Scaffold(
         topBar = {
@@ -265,8 +288,8 @@ private fun ConfigureScreen(
             ) {
                 Text(
                     text = dateState.selectedDateMillis?.let { millis ->
-                        val date = java.time.Instant.ofEpochMilli(millis)
-                            .atZone(java.time.ZoneId.of("UTC"))
+                        val date = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.of("UTC"))
                             .toLocalDate()
                         val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
                         date.format(formatter)
@@ -300,15 +323,20 @@ private fun ConfigureScreen(
                 }
             }
 
-            Text(
-                text = dateState.selectedDateMillis?.let { previewLabel } ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(dimensionResource(R.dimen.empty_label_height))
-                    .wrapContentWidth(Alignment.CenterHorizontally)
-            )
+            OutlinedButton(
+                onClick = {
+                    pickMedia.launch(
+                        PickVisualMediaRequest(
+                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(R.string.config_pick_photo)
+                )
+            }
 
             Text(
                 text = stringResource(R.string.config_set_color_mode),
@@ -362,6 +390,64 @@ private fun ConfigureScreen(
                     .fillMaxWidth()
                     .padding(bottom = dimensionResource(R.dimen.padding_s))
             )
+
+            Text(
+                text = stringResource(R.string.config_photo_preview),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = dimensionResource(R.dimen.padding_m))
+            )
+
+            Text(
+                text = dateState.selectedDateMillis?.let { previewLabel } ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(dimensionResource(R.dimen.empty_label_height))
+                    .wrapContentWidth(Alignment.CenterHorizontally)
+            )
+
+            if (selectedPhotoUri != null) {
+                Box(
+                    modifier = Modifier
+                        .size(dimensionResource(R.dimen.photo_preview_size))
+                        .align(Alignment.CenterHorizontally)
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(selectedPhotoUri),
+                        contentDescription = stringResource(R.string.photo_preview_description),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(dimensionResource(R.dimen.clipping_radius)))
+                            .border(
+                                width = dimensionResource(R.dimen.photo_preview_border),
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(dimensionResource(R.dimen.clipping_radius))
+                            )
+                    )
+                    IconButton(
+                        onClick = { selectedPhotoUri = null },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(dimensionResource(R.dimen.photo_remove_button_padding))
+                            .size(dimensionResource(R.dimen.photo_remove_button_size))
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.close_icon_description),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+
+            }
         }
     }
 

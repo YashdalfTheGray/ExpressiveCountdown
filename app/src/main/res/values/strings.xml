@@ -16,4 +16,8 @@
     </string>
     <string name="datepicker_dialog_confirm">Save</string>
     <string name="datepicker_dialog_cancel">Cancel</string>
+    <string name="config_pick_photo">Pick a photo</string>
+    <string name="config_photo_preview">Preview</string>
+    <string name="photo_preview_description">Photo preview</string>
+    <string name="close_icon_description">Close</string>
 </resources>
