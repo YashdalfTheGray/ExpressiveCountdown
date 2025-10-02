@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -81,6 +80,7 @@ import androidx.core.graphics.drawable.toDrawable
 import coil.compose.rememberAsyncImagePainter
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import androidx.core.net.toUri
 
 class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 
@@ -117,8 +117,8 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
             ExpressiveCountdownTheme {
                 ConfigureScreen(
                     appWidgetId = appWidgetId,
-                    onComplete = { millis, title, colorMode ->
-                        onDone(millis, title, colorMode)
+                    onComplete = { millis, title, colorMode, photoUri ->
+                        onDone(millis, title, colorMode, photoUri)
                     },
                     onCancel = {
                         setResult(RESULT_CANCELED)
@@ -129,7 +129,12 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
         }
     }
 
-    private fun onDone(selectedDateMillis: Long, title: String, colorMode: ColorMode) {
+    private fun onDone(
+        selectedDateMillis: Long,
+        title: String,
+        colorMode: ColorMode,
+        photoUri: Uri?
+    ) {
         lifecycleScope.launch {
             val manager = GlanceAppWidgetManager(this@ExpressiveCountdownConfigureActivity)
             val glanceId: GlanceId = manager.getGlanceIds(ExpressiveCountdownWidget::class.java)
@@ -149,6 +154,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                     this[WidgetPreferencesKeys.TARGET_DATE] = target.toString()
                     this[WidgetPreferencesKeys.TITLE] = title.trim()
                     this[WidgetPreferencesKeys.COLOR_MODE] = colorMode.name
+                    this[WidgetPreferencesKeys.IMAGE_URL] = photoUri?.toString() ?: ""
                 }
             }
 
@@ -168,7 +174,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 @Composable
 private fun ConfigureScreen(
     appWidgetId: Int,
-    onComplete: (Long, String, ColorMode) -> Unit,
+    onComplete: (Long, String, ColorMode, Uri?) -> Unit,
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
@@ -205,9 +211,13 @@ private fun ConfigureScreen(
                 val storedColorMode = prefs[WidgetPreferencesKeys.COLOR_MODE]?.let {
                     runCatching { ColorMode.valueOf(it) }.getOrNull()
                 } ?: ColorMode.System
+                val storedPhotoUri = prefs[WidgetPreferencesKeys.IMAGE_URL]?.let {
+                    if (it.isNotEmpty()) it.toUri() else null
+                }
 
                 title = storedTitle
                 colorMode = storedColorMode
+                selectedPhotoUri = storedPhotoUri
                 storedDate?.let { date ->
                     val millis = date.atStartOfDay(ZoneId.of("UTC"))
                         .toInstant()
@@ -248,7 +258,7 @@ private fun ConfigureScreen(
                         onClick = {
                             dateState.selectedDateMillis?.let { millis ->
                                 scope.launch {
-                                    onComplete(millis, title, colorMode)
+                                    onComplete(millis, title, colorMode, selectedPhotoUri)
                                 }
                             }
                         },
