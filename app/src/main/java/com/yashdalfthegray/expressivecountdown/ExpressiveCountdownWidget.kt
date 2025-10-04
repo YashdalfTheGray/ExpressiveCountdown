@@ -1,6 +1,7 @@
 package com.yashdalfthegray.expressivecountdown
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.DpSize
@@ -25,6 +26,8 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import java.time.LocalDate
+import androidx.core.net.toUri
+import androidx.glance.appwidget.ImageProvider
 
 class ExpressiveCountdownWidget : GlanceAppWidget() {
 
@@ -47,7 +50,8 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                 val colorMode = prefs[WidgetPreferencesKeys.COLOR_MODE]?.let {
                     runCatching { ColorMode.valueOf(it) }.getOrNull()
                 } ?: ColorMode.System
-                val photoUri = prefs[WidgetPreferencesKeys.IMAGE_URL]
+                val imageUriString = prefs[WidgetPreferencesKeys.IMAGE_URL]
+                val imageUri = imageUriString?.takeIf { it.isNotEmpty() }?.toUri()
 
                 val target = targetString?.let { LocalDate.parse(it) }
 
@@ -61,7 +65,8 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                 WidgetContent(
                     daysLeftStr = daysLeftStr,
                     title = title ?: "",
-                    colorMode = colorMode
+                    colorMode = colorMode,
+                    imageUri = imageUri
                 )
             }
         }
@@ -71,7 +76,8 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
     private fun WidgetContent(
         daysLeftStr: String,
         title: String,
-        colorMode: ColorMode
+        colorMode: ColorMode,
+        imageUri: Uri?
     ) {
         val size = LocalSize.current
 
@@ -89,7 +95,13 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.widgetBackground)
+                .then(
+                    if (imageUri != null) {
+                        GlanceModifier.background(ImageProvider(imageUri))
+                    } else {
+                        GlanceModifier.background(GlanceTheme.colors.widgetBackground)
+                    }
+                )
                 .padding(8.dp),
         ) {
             if (title.isNotBlank()) {

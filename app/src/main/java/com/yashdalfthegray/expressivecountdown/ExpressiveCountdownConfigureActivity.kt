@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -135,6 +136,24 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
         colorMode: ColorMode,
         photoUri: Uri?
     ) {
+        photoUri?.let { uri ->
+            try {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+
+                grantUriPermission(
+                    "com.yashdalfthegray.expressivecountdown",
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: SecurityException) {
+                Log.e("ExpressiveCountdownConfigureActivity", "Failed to grant URI permission", e)
+            }
+
+        }
+
         lifecycleScope.launch {
             val manager = GlanceAppWidgetManager(this@ExpressiveCountdownConfigureActivity)
             val glanceId: GlanceId = manager.getGlanceIds(ExpressiveCountdownWidget::class.java)
