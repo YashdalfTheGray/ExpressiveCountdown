@@ -3,6 +3,7 @@
     <dimen name="padding_s">4dp</dimen>
     <dimen name="padding_m">8dp</dimen>
     <dimen name="padding_l">12dp</dimen>
+    <dimen name="padding_xl">16dp</dimen>
     <dimen name="activity_padding">24dp</dimen>
     <dimen name="vertical_spacing">16dp</dimen>
     <dimen name="empty_label_height">20dp</dimen>
@@ -11,4 +12,6 @@
     <dimen name="photo_preview_border">2dp</dimen>
     <dimen name="photo_remove_button_size">20dp</dimen>
     <dimen name="photo_remove_button_padding">4dp</dimen>
+    <dimen name="color_picker_dialog_elevation">6dp</dimen>
+    <dimen name="color_picker_dialog_padding">24dp</dimen>
 </resources>

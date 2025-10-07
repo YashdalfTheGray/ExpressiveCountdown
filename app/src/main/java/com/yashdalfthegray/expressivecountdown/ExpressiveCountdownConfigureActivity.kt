@@ -241,6 +241,10 @@ private fun ConfigureScreen(
     var colorMode by rememberSaveable { mutableStateOf(ColorMode.System) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var selectedPhotoUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    var showColorPicker by rememberSaveable { mutableStateOf(false) }
+    var selectedColor by rememberSaveable(stateSaver = ColorSaver) {
+        mutableStateOf(Color(0xFF6750A4))
+    }
 
     val pickMedia = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -457,8 +461,28 @@ private fun ConfigureScreen(
                     .padding(bottom = dimensionResource(R.dimen.padding_s))
             )
 
+            if (colorMode == ColorMode.Custom) {
+                OutlinedButton(
+                    onClick = { showColorPicker = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "Pick custom color")
+                }
+            }
+
+            if (showColorPicker) {
+                ColorPickerDialog(
+                    initialColor = selectedColor,
+                    onDismiss = { showColorPicker = false },
+                    onColorSelected = { color ->
+                        selectedColor = color
+                        showColorPicker = false
+                    }
+                )
+            }
+
             Text(
-                text = stringResource(R.string.config_photo_preview),
+                text = stringResource(R.string.config_widget_preview),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .fillMaxWidth()
