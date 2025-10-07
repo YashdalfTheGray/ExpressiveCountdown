@@ -1,7 +1,7 @@
 package com.yashdalfthegray.expressivecountdown
 
 import android.content.Context
-import android.net.Uri
+import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.DpSize
@@ -26,8 +26,7 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import java.time.LocalDate
-import androidx.core.net.toUri
-import androidx.glance.appwidget.ImageProvider
+import androidx.glance.ImageProvider
 
 class ExpressiveCountdownWidget : GlanceAppWidget() {
 
@@ -51,7 +50,21 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                     runCatching { ColorMode.valueOf(it) }.getOrNull()
                 } ?: ColorMode.System
                 val imageUriString = prefs[WidgetPreferencesKeys.IMAGE_URL]
-                val imageUri = imageUriString?.takeIf { it.isNotEmpty() }?.toUri()
+
+                val backgroundImage = if (!imageUriString.isNullOrEmpty()) {
+                    try {
+                        val options = BitmapFactory.Options().apply {
+                            inSampleSize = 2
+                        }
+                        val bitmap = BitmapFactory.decodeFile(imageUriString, options)
+                        if (bitmap != null) ImageProvider(bitmap) else null
+                    } catch (e: Exception) {
+                        Log.e("ExpressiveCountdownWidget", "Failed to load image", e)
+                        null
+                    }
+                } else {
+                    null
+                }
 
                 val target = targetString?.let { LocalDate.parse(it) }
 
@@ -62,11 +75,13 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                     context.resources.getQuantityString(R.plurals.days_left, days.toInt(), days)
                 }
 
+                Log.d("ExpressiveCountdownWidget", "imageUri: $imageUriString")
+
                 WidgetContent(
                     daysLeftStr = daysLeftStr,
                     title = title ?: "",
                     colorMode = colorMode,
-                    imageUri = imageUri
+                    backgroundImage = backgroundImage
                 )
             }
         }
@@ -77,7 +92,7 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
         daysLeftStr: String,
         title: String,
         colorMode: ColorMode,
-        imageUri: Uri?
+        backgroundImage: ImageProvider?
     ) {
         val size = LocalSize.current
 
@@ -96,8 +111,8 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
             modifier = GlanceModifier
                 .fillMaxSize()
                 .then(
-                    if (imageUri != null) {
-                        GlanceModifier.background(ImageProvider(imageUri))
+                    if (backgroundImage != null) {
+                        GlanceModifier.background(backgroundImage)
                     } else {
                         GlanceModifier.background(GlanceTheme.colors.widgetBackground)
                     }

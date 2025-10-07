@@ -82,6 +82,9 @@ import coil.compose.rememberAsyncImagePainter
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import androidx.core.net.toUri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 
 class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 
@@ -164,6 +167,8 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                 .atZone(ZoneId.of("UTC"))
                 .toLocalDate()
 
+            val imagePath = saveWidgetImage(photoUri, appWidgetId)
+
             updateAppWidgetState(
                 context = this@ExpressiveCountdownConfigureActivity,
                 definition = PreferencesGlanceStateDefinition,
@@ -173,7 +178,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                     this[WidgetPreferencesKeys.TARGET_DATE] = target.toString()
                     this[WidgetPreferencesKeys.TITLE] = title.trim()
                     this[WidgetPreferencesKeys.COLOR_MODE] = colorMode.name
-                    this[WidgetPreferencesKeys.IMAGE_URL] = photoUri?.toString() ?: ""
+                    this[WidgetPreferencesKeys.IMAGE_URL] = imagePath
                 }
             }
 
@@ -185,6 +190,38 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
             )
             setResult(RESULT_OK, resultValue)
             finish()
+        }
+    }
+
+    private suspend fun saveWidgetImage(uri: Uri?, widgetId: Int): String {
+        return withContext(Dispatchers.IO) {
+            val imageFile = File(filesDir, "widget_${widgetId}_background.jpg")
+
+            if (uri == null) {
+                if (imageFile.exists()) {
+                    imageFile.delete()
+                    Log.d("ExpressiveCountdownConfigureActivity", "Deleted image for widget $widgetId")
+                }
+                return@withContext ""
+            }
+
+            try {
+                if (imageFile.exists()) {
+                    imageFile.delete()
+                }
+
+                contentResolver.openInputStream(uri)?.use { input ->
+                    imageFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                Log.d("ExpressiveCountdownConfigureActivity", "Saved image: ${imageFile.absolutePath}")
+                imageFile.absolutePath
+            } catch (e: Exception) {
+                Log.e("ExpressiveCountdownConfigureActivity", "Failed to save image", e)
+                ""
+            }
         }
     }
 }
@@ -479,5 +516,4 @@ private fun ConfigureScreen(
             }
         }
     }
-
 }
