@@ -300,7 +300,9 @@ private fun ConfigureScreen(
         if (n == 1L) stringResource(R.string.one_day) else context.getString(R.string.many_days, n)
     } ?: stringResource(R.string.config_pick_date)
 
-    val canComplete = dateState.selectedDateMillis != null
+    val canComplete = dateState.selectedDateMillis != null &&
+            (colorMode != ColorMode.Custom || selectedColor != Color.Unspecified)
+
     val hasPhoto = selectedPhotoUri != null
 
     Scaffold(
@@ -460,7 +462,7 @@ private fun ConfigureScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = dimensionResource(R.dimen.padding_s))
+                    .padding(bottom = dimensionResource(R.dimen.padding_xs))
             )
 
             if (colorMode == ColorMode.Custom) {
@@ -521,7 +523,7 @@ private fun ConfigureScreen(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = dimensionResource(R.dimen.padding_m))
+                    .padding(top = dimensionResource(R.dimen.padding_s))
             )
 
             Text(
