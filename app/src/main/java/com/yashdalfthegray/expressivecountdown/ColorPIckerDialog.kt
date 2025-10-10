@@ -131,6 +131,98 @@ fun ColorPickerDialog(
                             textAlign = TextAlign.End
                         )
                     }
+
+                    Text(
+                        text = stringResource(R.string.color_picker_saturation_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_xs))
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_m)),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Slider(
+                            value = saturation,
+                            onValueChange = { saturation = it },
+                            valueRange = 0f..1f,
+                            modifier = Modifier.weight(1f),
+                            track = { sliderState ->
+                                val saturationGradient = remember(hue, value) {
+                                    Brush.horizontalGradient(
+                                        colors = listOf(
+                                            Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0f, value))),
+                                            Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 1f, value))),
+                                        )
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(dimensionResource(R.dimen.color_picker_slider_track_height))
+                                        .background(
+                                            brush = saturationGradient,
+                                            shape = MaterialTheme.shapes.small
+                                        )
+                                )
+                            }
+                        )
+                        Text(
+                            text = (saturation * 100).toInt().toString(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.widthIn(
+                                min = dimensionResource(R.dimen.color_picker_hsv_number_label_width)
+                            ),
+                            textAlign = TextAlign.End
+                        )
+                    }
+
+                    Text(
+                        text = stringResource(R.string.color_picker_value_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_xs))
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_m)),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Slider(
+                            value = value,
+                            onValueChange = { value = it },
+                            valueRange = 0f..1f,
+                            modifier = Modifier.weight(1f),
+                            track = { sliderState ->
+                                val valueGradient = remember(hue, saturation) {
+                                    Brush.horizontalGradient(
+                                        colors = listOf(
+                                            Color.Black,
+                                            Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, saturation, 1f)))
+                                        )
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(dimensionResource(R.dimen.color_picker_slider_track_height))
+                                        .background(
+                                            brush = valueGradient,
+                                            shape = MaterialTheme.shapes.small
+                                        )
+                                )
+                            }
+                        )
+                        Text(
+                            text = (value * 100).toInt().toString(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.widthIn(
+                                min = dimensionResource(R.dimen.color_picker_hsv_number_label_width)
+                            ),
+                            textAlign = TextAlign.End
+                        )
+                    }
                 }
 
                 Row(
