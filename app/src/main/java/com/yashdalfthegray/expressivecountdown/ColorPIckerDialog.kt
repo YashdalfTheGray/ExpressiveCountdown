@@ -18,6 +18,10 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,6 +31,7 @@ fun ColorPickerDialog(
     onDismiss: () -> Unit,
     onColorSelected: (Color) -> Unit
 ) {
+    var selectedColor by remember { mutableStateOf(initialColor) }
     BasicAlertDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -61,7 +66,7 @@ fun ColorPickerDialog(
                     TextButton(onClick = onDismiss) {
                         Text(text = stringResource(R.string.color_picker_dialog_cancel))
                     }
-                    TextButton(onClick = { onColorSelected(initialColor) }) {
+                    TextButton(onClick = { onColorSelected(selectedColor) }) {
                         Text(text = stringResource(R.string.color_picker_dialog_choose))
                     }
                 }

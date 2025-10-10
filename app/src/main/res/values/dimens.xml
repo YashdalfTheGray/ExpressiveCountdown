@@ -14,4 +14,6 @@
     <dimen name="photo_remove_button_padding">4dp</dimen>
     <dimen name="color_picker_dialog_elevation">6dp</dimen>
     <dimen name="color_picker_dialog_padding">24dp</dimen>
+    <dimen name="custom_color_chip_swatch_size">16dp</dimen>
+    <dimen name="custom_color_chip_remove_size">16dp</dimen>
 </resources>

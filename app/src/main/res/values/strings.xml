@@ -23,4 +23,5 @@
     <string name="color_picker_dialog_title">Choose a color</string>
     <string name="color_picker_dialog_choose">Choose</string>
     <string name="color_picker_dialog_cancel">Cancel</string>
+    <string name="custom_color_chip_remove_content_description">Clear color</string>
 </resources>

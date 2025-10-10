@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,6 +66,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
@@ -467,6 +469,39 @@ private fun ConfigureScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "Pick custom color")
+                }
+
+                if (selectedColor != Color.Unspecified) {
+                    AssistChip(
+                        onClick =  { },
+                        label = {
+                            Text(
+                                text = "#${selectedColor.toArgb().toUInt().toString(16).uppercase().takeLast(6)}",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        },
+                        leadingIcon = {
+                            Box(
+                                modifier = Modifier
+                                    .size(dimensionResource(R.dimen.custom_color_chip_swatch_size))
+                                    .background(selectedColor, CircleShape)
+                            )
+                        },
+                        trailingIcon = {
+                            IconButton(
+                                onClick = { selectedColor = Color.Unspecified },
+                                modifier = Modifier.size(dimensionResource(R.dimen.custom_color_chip_remove_size))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.custom_color_chip_remove_content_description),
+                                    modifier = Modifier.size(dimensionResource(R.dimen.custom_color_chip_remove_size))
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
 
