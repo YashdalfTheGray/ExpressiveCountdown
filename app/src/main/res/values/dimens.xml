@@ -19,6 +19,8 @@
     <dimen name="color_picker_slider_padding">12dp</dimen>
     <dimen name="color_picker_hsv_number_label_width">40dp</dimen>
     <dimen name="color_picker_slider_track_height">8dp</dimen>
+    <dimen name="color_picker_preview_swatch_height">36dp</dimen>
+    <dimen name="color_picker_preview_swatch_border">1dp</dimen>
     <dimen name="custom_color_chip_swatch_size">16dp</dimen>
     <dimen name="custom_color_chip_remove_size">16dp</dimen>
 </resources>

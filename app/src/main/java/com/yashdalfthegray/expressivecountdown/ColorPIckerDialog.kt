@@ -1,7 +1,9 @@
 package com.yashdalfthegray.expressivecountdown
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,18 +23,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +65,19 @@ fun ColorPickerDialog(
     val selectedColor by remember {
         derivedStateOf {
             Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, saturation, value)))
+        }
+    }
+
+    var isEditingHex by remember { mutableStateOf(false) }
+    var editableHexText by remember { mutableStateOf("") }
+
+    val hexText = remember(selectedColor) {
+        derivedStateOf {
+            if (isEditingHex) {
+                editableHexText
+            } else {
+                "#${selectedColor.toArgb().toUInt().toString(16).uppercase().takeLast(6)}"
+            }
         }
     }
 
@@ -223,6 +247,57 @@ fun ColorPickerDialog(
                             textAlign = TextAlign.End
                         )
                     }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(dimensionResource(R.dimen.color_picker_preview_swatch_height))
+                                .background(selectedColor, MaterialTheme.shapes.extraLarge)
+                            .border(
+                                width = dimensionResource(R.dimen.color_picker_preview_swatch_border),
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = MaterialTheme.shapes.extraLarge
+                            )
+                    )
+
+                    OutlinedTextField(
+                        value = hexText.value,
+                        onValueChange = { newHex ->
+                            isEditingHex = true
+                            editableHexText = newHex
+
+                            if (newHex.matches(Regex("^#?[0-9A-Fa-f]{6}$"))) {
+                                try {
+                                    val sanitized = newHex.removePrefix("#")
+                                    val color = Color("#$sanitized".toColorInt())
+
+                                    val hsv = FloatArray(3)
+                                    android.graphics.Color.colorToHSV(color.toArgb(), hsv)
+                                    hue = hsv[0]
+                                    saturation = hsv[1]
+                                    value = hsv[2]
+                                    isEditingHex = false
+                                } catch (e: Exception) {
+                                    Log.d("ColorPickerDialog", "This is likely because the color is invalid")
+                                    Log.d("ColorPickerDialog", "Error parsing hex color", e)
+                                }
+                            }
+                        },
+                        label = { Text(text = stringResource(R.string.color_picker_hex_field_label)) },
+                        trailingIcon = {
+                            val clipboard = LocalClipboard.current
+                            IconButton(
+                                onClick = {
+
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentCopy,
+                                    contentDescription = stringResource(R.string.color_picker_hex_field_copy_description)
+                                )
+                            }
+                        }
+                    )
                 }
 
                 Row(
