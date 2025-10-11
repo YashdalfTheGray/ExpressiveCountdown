@@ -39,8 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.graphics.toColorInt
@@ -285,10 +284,12 @@ fun ColorPickerDialog(
                         },
                         label = { Text(text = stringResource(R.string.color_picker_hex_field_label)) },
                         trailingIcon = {
-                            val clipboard = LocalClipboard.current
+                            val context = LocalContext.current
                             IconButton(
                                 onClick = {
-
+                                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    val clip = android.content.ClipData.newPlainText("Color", hexText.value)
+                                    clipboard.setPrimaryClip(clip)
                                 }
                             ) {
                                 Icon(
