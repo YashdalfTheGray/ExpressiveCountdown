@@ -11,6 +11,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -86,6 +87,7 @@ import java.time.format.FormatStyle
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import java.io.File
 
 class ExpressiveCountdownConfigureActivity : ComponentActivity() {
@@ -123,8 +125,8 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
             ExpressiveCountdownTheme {
                 ConfigureScreen(
                     appWidgetId = appWidgetId,
-                    onComplete = { millis, title, colorMode, photoUri ->
-                        onDone(millis, title, colorMode, photoUri)
+                    onComplete = { millis, title, colorMode, selectedColor, photoUri ->
+                        onDone(millis, title, colorMode, selectedColor, photoUri)
                     },
                     onCancel = {
                         setResult(RESULT_CANCELED)
@@ -135,10 +137,12 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun onDone(
         selectedDateMillis: Long,
         title: String,
         colorMode: ColorMode,
+        selectedColor: Color,
         photoUri: Uri?
     ) {
         photoUri?.let { uri ->
@@ -171,6 +175,18 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 
             val imagePath = saveWidgetImage(photoUri, appWidgetId)
 
+            val customThemeJson = if (colorMode == ColorMode.Custom && selectedColor != Color.Unspecified) {
+                try {
+                    val storedTheme = generateThemeFromSeedColor(selectedColor)
+                    Json.encodeToString(storedTheme)
+                } catch (e: Exception) {
+                    Log.e("ExpressiveCountdownConfigureActivity", "Failed to serialize theme", e)
+                    ""
+                }
+            } else {
+                ""
+            }
+
             updateAppWidgetState(
                 context = this@ExpressiveCountdownConfigureActivity,
                 definition = PreferencesGlanceStateDefinition,
@@ -181,6 +197,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                     this[WidgetPreferencesKeys.TITLE] = title.trim()
                     this[WidgetPreferencesKeys.COLOR_MODE] = colorMode.name
                     this[WidgetPreferencesKeys.IMAGE_URL] = imagePath
+                    this[WidgetPreferencesKeys.CUSTOM_THEME] = customThemeJson
                 }
             }
 
@@ -232,7 +249,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 @Composable
 private fun ConfigureScreen(
     appWidgetId: Int,
-    onComplete: (Long, String, ColorMode, Uri?) -> Unit,
+    onComplete: (Long, String, ColorMode, Color, Uri?) -> Unit,
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
@@ -322,7 +339,7 @@ private fun ConfigureScreen(
                         onClick = {
                             dateState.selectedDateMillis?.let { millis ->
                                 scope.launch {
-                                    onComplete(millis, title, colorMode, selectedPhotoUri)
+                                    onComplete(millis, title, colorMode, selectedColor, selectedPhotoUri)
                                 }
                             }
                         },
