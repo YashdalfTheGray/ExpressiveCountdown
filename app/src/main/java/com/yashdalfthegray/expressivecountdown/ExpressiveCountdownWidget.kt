@@ -11,11 +11,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.Image
 import androidx.glance.LocalSize
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
-import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
@@ -27,6 +27,8 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import java.time.LocalDate
 import androidx.glance.ImageProvider
+import androidx.glance.layout.Box
+import androidx.glance.layout.ContentScale
 import androidx.glance.material3.ColorProviders
 import kotlinx.serialization.json.Json
 
@@ -125,37 +127,43 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
             else -> 36.sp
         }
 
-        Column(
-            modifier = GlanceModifier
-                .fillMaxSize()
-                .then(
-                    if (backgroundImage != null) {
-                        GlanceModifier.background(backgroundImage)
-                    } else {
-                        GlanceModifier.background(GlanceTheme.colors.widgetBackground)
-                    }
-                )
-                .padding(8.dp),
+        Box(
+            modifier = GlanceModifier.fillMaxSize()
         ) {
-            if (title.isNotBlank()) {
-                Text(
-                    text = title,
-                    style = TextStyle(
-                        fontSize = titleFontSize,
-                        color = GlanceTheme.colors.onSurface,
-                    )
+            if (backgroundImage != null) {
+                Image(
+                    provider = backgroundImage,
+                    contentDescription = null,
+                    modifier = GlanceModifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
             }
 
-            Spacer(modifier = GlanceModifier.defaultWeight())
+            Column(
+                modifier = GlanceModifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+            ) {
+                if (title.isNotBlank()) {
+                    Text(
+                        text = title,
+                        style = TextStyle(
+                            fontSize = titleFontSize,
+                            color = GlanceTheme.colors.onSurface,
+                        )
+                    )
+                }
 
-            Text(
-                text = daysLeftStr,
-                style = TextStyle(
-                    fontSize = countdownFontSize,
-                    color = GlanceTheme.colors.primary,
+                Spacer(modifier = GlanceModifier.defaultWeight())
+
+                Text(
+                    text = daysLeftStr,
+                    style = TextStyle(
+                        fontSize = countdownFontSize,
+                        color = GlanceTheme.colors.primary,
+                    )
                 )
-            )
+            }
         }
     }
 }
