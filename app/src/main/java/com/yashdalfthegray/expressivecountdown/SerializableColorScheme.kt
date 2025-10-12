@@ -1,12 +1,18 @@
 package com.yashdalfthegray.expressivecountdown
 
+import android.content.Context
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Log
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import com.materialkolor.PaletteStyle
 import kotlinx.serialization.Serializable
 import com.materialkolor.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
+import com.materialkolor.ktx.themeColor
 
 fun generateThemeFromSeedColor(seedColor: Color): StoredCustomTheme {
     val lightScheme = dynamicColorScheme(
@@ -26,6 +32,27 @@ fun generateThemeFromSeedColor(seedColor: Color): StoredCustomTheme {
         light = lightScheme.toSerializable(),
         dark = darkScheme.toSerializable()
     )
+}
+
+fun generateThemeFromImage(
+    context: Context,
+    imageUrl: Uri,
+    fallbackColor: Color
+): StoredCustomTheme? {
+    return try {
+        val bitmap = context.contentResolver.openInputStream(imageUrl)?.use {
+            BitmapFactory.decodeStream(it)
+        } ?: return null
+
+        val imageBitmap = bitmap.asImageBitmap()
+        val seedColor = imageBitmap.themeColor(fallback = fallbackColor)
+        Log.d("ExpressiveCountdownConfigureActivity", "Seed color: ${seedColor.toArgb().toUInt().toString(16)}")
+
+        generateThemeFromSeedColor(seedColor)
+    } catch (e: Exception) {
+        Log.e("ExpressiveCountdownConfigureActivity", "Failed to generate theme", e)
+        null
+    }
 }
 
 @Serializable

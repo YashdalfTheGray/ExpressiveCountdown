@@ -125,8 +125,8 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
             ExpressiveCountdownTheme {
                 ConfigureScreen(
                     appWidgetId = appWidgetId,
-                    onComplete = { millis, title, colorMode, selectedColor, photoUri ->
-                        onDone(millis, title, colorMode, selectedColor, photoUri)
+                    onComplete = { millis, title, colorMode, selectedColor, fallbackColor, photoUri ->
+                        onDone(millis, title, colorMode, selectedColor, fallbackColor, photoUri)
                     },
                     onCancel = {
                         setResult(RESULT_CANCELED)
@@ -143,7 +143,8 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
         title: String,
         colorMode: ColorMode,
         selectedColor: Color,
-        photoUri: Uri?
+        fallbackColor: Color,
+        photoUri: Uri?,
     ) {
         photoUri?.let { uri ->
             try {
@@ -175,16 +176,43 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 
             val imagePath = saveWidgetImage(photoUri, appWidgetId)
 
-            val customThemeJson = if (colorMode == ColorMode.Custom && selectedColor != Color.Unspecified) {
-                try {
-                    val storedTheme = generateThemeFromSeedColor(selectedColor)
-                    Json.encodeToString(storedTheme)
-                } catch (e: Exception) {
-                    Log.e("ExpressiveCountdownConfigureActivity", "Failed to serialize theme", e)
-                    ""
+            val customThemeJson = when (colorMode) {
+                ColorMode.Custom -> {
+                    if (selectedColor != Color.Unspecified) {
+                        try {
+                            val storedTheme = generateThemeFromSeedColor(selectedColor)
+                            Json.encodeToString(storedTheme)
+                        } catch (e: Exception) {
+                            Log.e(
+                                "ExpressiveCountdownConfigureActivity",
+                                "Failed to serialize theme",
+                                e
+                            )
+                            ""
+                        }
+                    } else ""
                 }
-            } else {
-                ""
+                ColorMode.Photo -> {
+                    if (photoUri != null) {
+                        try {
+                            val storedTheme = generateThemeFromImage(
+                                this@ExpressiveCountdownConfigureActivity,
+                                photoUri,
+                                fallbackColor
+                            )
+
+                            if (storedTheme != null) Json.encodeToString(storedTheme) else ""
+                        } catch (e: Exception) {
+                            Log.e(
+                                "ExpressiveCountdownConfigureActivity",
+                                "Failed to serialize theme",
+                                e
+                            )
+                            ""
+                        }
+                    } else ""
+                }
+                ColorMode.System -> ""
             }
 
             updateAppWidgetState(
@@ -249,7 +277,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 @Composable
 private fun ConfigureScreen(
     appWidgetId: Int,
-    onComplete: (Long, String, ColorMode, Color, Uri?) -> Unit,
+    onComplete: (Long, String, ColorMode, Color, Color, Uri?) -> Unit,
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
@@ -322,6 +350,8 @@ private fun ConfigureScreen(
 
     val hasPhoto = selectedPhotoUri != null
 
+    val fallbackColor = MaterialTheme.colorScheme.primary
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -339,7 +369,7 @@ private fun ConfigureScreen(
                         onClick = {
                             dateState.selectedDateMillis?.let { millis ->
                                 scope.launch {
-                                    onComplete(millis, title, colorMode, selectedColor, selectedPhotoUri)
+                                    onComplete(millis, title, colorMode, selectedColor, fallbackColor, selectedPhotoUri)
                                 }
                             }
                         },
