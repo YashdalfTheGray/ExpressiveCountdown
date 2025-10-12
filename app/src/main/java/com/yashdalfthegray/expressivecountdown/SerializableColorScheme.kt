@@ -3,12 +3,24 @@ package com.yashdalfthegray.expressivecountdown
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import com.materialkolor.PaletteStyle
 import kotlinx.serialization.Serializable
 import com.materialkolor.dynamicColorScheme
+import com.materialkolor.dynamiccolor.ColorSpec
 
 fun generateThemeFromSeedColor(seedColor: Color): StoredCustomTheme {
-    val lightScheme = dynamicColorScheme(seedColor = seedColor, isDark = false)
-    val darkScheme = dynamicColorScheme(seedColor = seedColor, isDark = true)
+    val lightScheme = dynamicColorScheme(
+        seedColor = seedColor,
+        isDark = false,
+        style = PaletteStyle.Expressive,
+        specVersion = ColorSpec.SpecVersion.SPEC_2025
+    )
+    val darkScheme = dynamicColorScheme(
+        seedColor = seedColor,
+        isDark = true,
+        style = PaletteStyle.Expressive,
+        specVersion = ColorSpec.SpecVersion.SPEC_2025
+    )
 
     return StoredCustomTheme(
         light = lightScheme.toSerializable(),

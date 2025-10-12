@@ -27,6 +27,8 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import java.time.LocalDate
 import androidx.glance.ImageProvider
+import androidx.glance.material3.ColorProviders
+import kotlinx.serialization.json.Json
 
 class ExpressiveCountdownWidget : GlanceAppWidget() {
 
@@ -42,30 +44,48 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
-            GlanceTheme {
-                val prefs = currentState<Preferences>()
-                val targetString = prefs[WidgetPreferencesKeys.TARGET_DATE]
-                val title = prefs[WidgetPreferencesKeys.TITLE]
-                val colorMode = prefs[WidgetPreferencesKeys.COLOR_MODE]?.let {
-                    runCatching { ColorMode.valueOf(it) }.getOrNull()
-                } ?: ColorMode.System
-                val imageUriString = prefs[WidgetPreferencesKeys.IMAGE_URL]
+            val prefs = currentState<Preferences>()
+            val targetString = prefs[WidgetPreferencesKeys.TARGET_DATE]
+            val title = prefs[WidgetPreferencesKeys.TITLE]
+            val colorMode = prefs[WidgetPreferencesKeys.COLOR_MODE]?.let {
+                runCatching { ColorMode.valueOf(it) }.getOrNull()
+            } ?: ColorMode.System
+            val imageUriString = prefs[WidgetPreferencesKeys.IMAGE_URL]
 
-                val backgroundImage = if (!imageUriString.isNullOrEmpty()) {
+            val customColorProviders = if (colorMode != ColorMode.System) {
+                val customThemeJson = prefs[WidgetPreferencesKeys.CUSTOM_THEME]
+                if (!customThemeJson.isNullOrEmpty()) {
                     try {
-                        val options = BitmapFactory.Options().apply {
-                            inSampleSize = 2
-                        }
-                        val bitmap = BitmapFactory.decodeFile(imageUriString, options)
-                        if (bitmap != null) ImageProvider(bitmap) else null
+                        val storedTheme = Json.decodeFromString<StoredCustomTheme>(customThemeJson)
+                        ColorProviders(
+                            light = storedTheme.light.toColorScheme(),
+                            dark = storedTheme.dark.toColorScheme()
+                        )
                     } catch (e: Exception) {
-                        Log.e("ExpressiveCountdownWidget", "Failed to load image", e)
+                        Log.e("ExpressiveCountdownWidget", "Failed to parse custom theme", e)
                         null
                     }
-                } else {
+                } else null
+            } else null
+
+            val backgroundImage = if (!imageUriString.isNullOrEmpty()) {
+                try {
+                    val options = BitmapFactory.Options().apply {
+                        inSampleSize = 2
+                    }
+                    val bitmap = BitmapFactory.decodeFile(imageUriString, options)
+                    if (bitmap != null) ImageProvider(bitmap) else null
+                } catch (e: Exception) {
+                    Log.e("ExpressiveCountdownWidget", "Failed to load image", e)
                     null
                 }
+            } else {
+                null
+            }
 
+            GlanceTheme(
+                colors = customColorProviders ?: GlanceTheme.colors,
+            ) {
                 val target = targetString?.let { LocalDate.parse(it) }
 
                 val daysLeftStr: String = if (target == null) {
@@ -80,7 +100,6 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                 WidgetContent(
                     daysLeftStr = daysLeftStr,
                     title = title ?: "",
-                    colorMode = colorMode,
                     backgroundImage = backgroundImage
                 )
             }
@@ -91,7 +110,6 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
     private fun WidgetContent(
         daysLeftStr: String,
         title: String,
-        colorMode: ColorMode,
         backgroundImage: ImageProvider?
     ) {
         val size = LocalSize.current
