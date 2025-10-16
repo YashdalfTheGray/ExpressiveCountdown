@@ -125,8 +125,8 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
             ExpressiveCountdownTheme {
                 ConfigureScreen(
                     appWidgetId = appWidgetId,
-                    onComplete = { millis, title, colorMode, selectedColor, fallbackColor, photoUri ->
-                        onDone(millis, title, colorMode, selectedColor, fallbackColor, photoUri)
+                    onComplete = { millis, title, colorMode, selectedColor, fallbackColor, photoUri, isNewPhoto ->
+                        onDone(millis, title, colorMode, selectedColor, fallbackColor, photoUri, isNewPhoto)
                     },
                     onCancel = {
                         setResult(RESULT_CANCELED)
@@ -145,6 +145,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
         selectedColor: Color,
         fallbackColor: Color,
         photoUri: Uri?,
+        isNewPhoto: Boolean
     ) {
         photoUri?.let { uri ->
             try {
@@ -174,7 +175,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                 .atZone(ZoneId.of("UTC"))
                 .toLocalDate()
 
-            val imagePath = saveWidgetImage(photoUri, appWidgetId)
+            val imagePath = saveWidgetImage(photoUri, appWidgetId, isNewPhoto)
 
             val customThemeJson = when (colorMode) {
                 ColorMode.Custom -> {
@@ -240,7 +241,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
         }
     }
 
-    private suspend fun saveWidgetImage(uri: Uri?, widgetId: Int): String {
+    private suspend fun saveWidgetImage(uri: Uri?, widgetId: Int, isNewPhoto: Boolean = true): String {
         return withContext(Dispatchers.IO) {
             val imageFile = File(filesDir, "widget_${widgetId}_background.jpg")
 
@@ -250,6 +251,11 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                     Log.d("ExpressiveCountdownConfigureActivity", "Deleted image for widget $widgetId")
                 }
                 return@withContext ""
+            }
+
+            if (!isNewPhoto && imageFile.exists()) {
+                Log.d("ExpressiveCountdownConfigureActivity", "Keeping existing image for widget $widgetId")
+                return@withContext imageFile.absolutePath
             }
 
             try {
@@ -277,7 +283,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
 @Composable
 private fun ConfigureScreen(
     appWidgetId: Int,
-    onComplete: (Long, String, ColorMode, Color, Color, Uri?) -> Unit,
+    onComplete: (Long, String, ColorMode, Color, Color, Uri?, Boolean) -> Unit,
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
@@ -287,6 +293,7 @@ private fun ConfigureScreen(
     val dateState = rememberDatePickerState(initialSelectedDateMillis = null)
     var colorMode by rememberSaveable { mutableStateOf(ColorMode.System) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var isNewPhoto by rememberSaveable { mutableStateOf(false) }
     var selectedPhotoUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     var showColorPicker by rememberSaveable { mutableStateOf(false) }
     var selectedColor by rememberSaveable(stateSaver = ColorSaver) {
@@ -297,6 +304,7 @@ private fun ConfigureScreen(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         selectedPhotoUri = uri
+        isNewPhoto = uri != null
     }
 
     LaunchedEffect(appWidgetId) {
@@ -325,6 +333,7 @@ private fun ConfigureScreen(
                 title = storedTitle
                 colorMode = storedColorMode
                 selectedPhotoUri = storedPhotoUri
+                isNewPhoto = false
                 storedDate?.let { date ->
                     val millis = date.atStartOfDay(ZoneId.of("UTC"))
                         .toInstant()
@@ -369,7 +378,7 @@ private fun ConfigureScreen(
                         onClick = {
                             dateState.selectedDateMillis?.let { millis ->
                                 scope.launch {
-                                    onComplete(millis, title, colorMode, selectedColor, fallbackColor, selectedPhotoUri)
+                                    onComplete(millis, title, colorMode, selectedColor, fallbackColor, selectedPhotoUri, isNewPhoto)
                                 }
                             }
                         },
@@ -603,7 +612,10 @@ private fun ConfigureScreen(
                             )
                     )
                     IconButton(
-                        onClick = { selectedPhotoUri = null },
+                        onClick = {
+                            selectedPhotoUri = null
+                            isNewPhoto = true
+                        },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(dimensionResource(R.dimen.photo_remove_button_padding))
