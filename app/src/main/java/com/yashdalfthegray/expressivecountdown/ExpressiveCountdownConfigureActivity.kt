@@ -225,8 +225,13 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                     this[WidgetPreferencesKeys.TARGET_DATE] = target.toString()
                     this[WidgetPreferencesKeys.TITLE] = title.trim()
                     this[WidgetPreferencesKeys.COLOR_MODE] = colorMode.name
-                    this[WidgetPreferencesKeys.IMAGE_URL] = imagePath
                     this[WidgetPreferencesKeys.CUSTOM_THEME] = customThemeJson
+
+                    if (imagePath.isNotEmpty()) {
+                        this[WidgetPreferencesKeys.IMAGE_URL] = imagePath
+                    } else {
+                        this.remove(WidgetPreferencesKeys.IMAGE_URL)
+                    }
                 }
             }
 

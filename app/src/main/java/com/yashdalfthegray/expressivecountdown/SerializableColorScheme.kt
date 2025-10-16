@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 import com.materialkolor.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.ktx.themeColor
+import java.io.File
 
 fun generateThemeFromSeedColor(seedColor: Color): StoredCustomTheme {
     val lightScheme = dynamicColorScheme(
@@ -40,9 +41,23 @@ fun generateThemeFromImage(
     fallbackColor: Color
 ): StoredCustomTheme? {
     return try {
-        val bitmap = context.contentResolver.openInputStream(imageUrl)?.use {
-            BitmapFactory.decodeStream(it)
-        } ?: return null
+        val bitmap = if (imageUrl.scheme == "content") {
+            context.contentResolver.openInputStream(imageUrl)?.use {
+                BitmapFactory.decodeStream(it)
+            }
+        } else {
+            val file = File(imageUrl.path ?: imageUrl.toString())
+            if (file.exists()) {
+                BitmapFactory.decodeFile(file.absolutePath)
+            } else {
+                null
+            }
+        }
+
+        if (bitmap == null) {
+            Log.e("ExpressiveCountdownConfigureActivity", "Failed to load image")
+            return null
+        }
 
         val imageBitmap = bitmap.asImageBitmap()
         val seedColor = imageBitmap.themeColor(fallback = fallbackColor)
