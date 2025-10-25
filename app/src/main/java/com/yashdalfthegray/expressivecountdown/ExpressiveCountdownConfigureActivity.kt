@@ -160,7 +160,7 @@ class ExpressiveCountdownConfigureActivity : ComponentActivity() {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
             } catch (e: SecurityException) {
-                Log.e("ExpressiveCountdownConfigureActivity", "Failed to grant URI permission", e)
+                Log.w("ExpressiveCountdownConfigureActivity", "Failed to grant URI permission", e)
             }
 
         }

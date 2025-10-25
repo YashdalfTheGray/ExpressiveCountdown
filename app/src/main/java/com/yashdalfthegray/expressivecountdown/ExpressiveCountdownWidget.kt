@@ -27,6 +27,8 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import java.time.LocalDate
 import androidx.glance.ImageProvider
+import androidx.glance.action.clickable
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.background
 import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
@@ -131,6 +133,7 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
+                .clickable(actionRunCallback<RefreshWidgetAction>())
                 .then(
                     if (backgroundImage == null) {
                         GlanceModifier.background(GlanceTheme.colors.widgetBackground)
