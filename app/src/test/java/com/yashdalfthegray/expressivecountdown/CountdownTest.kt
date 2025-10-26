@@ -44,4 +44,32 @@ class CountdownTest {
         val result = daysLeft(clock, past, clampToZero = false)
         assertEquals(-3L, result)
     }
+
+    @Test
+    fun daysLeft_oneYearFromNow_correctCount() {
+        val clock = fixedClock("2025-09-22T10:00:00Z")
+        val oneYearLater = LocalDate.now(clock).plusYears(1)
+        val result = daysLeft(clock, oneYearLater)
+        assertEquals(365L, result) // 2025 is not a leap year
+    }
+
+    @Test
+    fun daysLeft_acrossTimeZones_consistent() {
+        val utcClock = fixedClock("2025-09-22T23:30:00Z", ZoneId.of("UTC"))
+        val pstClock = fixedClock("2025-09-22T23:30:00Z", ZoneId.of("America/Los_Angeles"))
+        val tomorrow = LocalDate.of(2025, 9, 23)
+
+        val utcResult = daysLeft(utcClock, tomorrow)
+        val pstResult = daysLeft(pstClock, tomorrow)
+
+        assertEquals(utcResult, pstResult)
+    }
+
+    @Test
+    fun daysLeft_endOfMonth_handlesCorrectly() {
+        val clock = fixedClock("2025-01-31T10:00:00Z")
+        val nextMonth = LocalDate.of(2025, 2, 28)
+        val result = daysLeft(clock, nextMonth)
+        assertEquals(28L, result)
+    }
 }

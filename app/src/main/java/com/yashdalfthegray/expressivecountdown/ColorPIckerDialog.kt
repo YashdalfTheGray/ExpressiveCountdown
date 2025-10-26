@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.graphics.toColorInt
@@ -122,7 +123,9 @@ fun ColorPickerDialog(
                             value = hue,
                             onValueChange = { hue = it },
                             valueRange = 0f..360f,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("hue_slider"),
                             track = { sliderState ->
                                 Box(
                                     modifier = Modifier
@@ -169,7 +172,9 @@ fun ColorPickerDialog(
                             value = saturation,
                             onValueChange = { saturation = it },
                             valueRange = 0f..1f,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("saturation_slider"),
                             track = { sliderState ->
                                 val saturationGradient = remember(hue, value) {
                                     Brush.horizontalGradient(
@@ -215,7 +220,9 @@ fun ColorPickerDialog(
                             value = value,
                             onValueChange = { value = it },
                             valueRange = 0f..1f,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("value_slider"),
                             track = { sliderState ->
                                 val valueGradient = remember(hue, saturation) {
                                     Brush.horizontalGradient(

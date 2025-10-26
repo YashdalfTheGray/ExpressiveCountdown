@@ -13,10 +13,19 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="Color Picker Dialog - ColorPickerDialogPreview (color 1)">
+      <SelectionState runConfigName="ConfigureActivityUITest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="Color Picker Dialog (Dark) - ColorPickerDialogPreview">
+      <SelectionState runConfigName="doneButton_enabledOnlyWhenValidCustomColorIsPicked()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="customColorChip_displaysSelectedColor()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="ColorPickerDialogTest">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="colorPickerDialog_hueSliderChangesColor()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
