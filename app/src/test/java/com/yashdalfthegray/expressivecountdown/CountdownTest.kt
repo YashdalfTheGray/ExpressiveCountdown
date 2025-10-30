@@ -72,4 +72,12 @@ class CountdownTest {
         val result = daysLeft(clock, nextMonth)
         assertEquals(28L, result)
     }
+
+    @Test
+    fun daysLeft_oneYearFromNowInLeapYear_correctCount() {
+        val clock = fixedClock("2024-02-28T10:00:00Z")
+        val oneYearLater = LocalDate.now(clock).plusYears(1)
+        val result = daysLeft(clock, oneYearLater)
+        assertEquals(366L, result)
+    }
 }

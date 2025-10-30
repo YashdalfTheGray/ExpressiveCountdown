@@ -6,12 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import java.time.ZonedDateTime
+import java.time.Clock
 
 object MidnightUpdateScheduler {
     private const val REQUEST_CODE = 1001
     const val ACTION_MIDNIGHT_UPDATE = "com.yashdalfthegray.expressivecountdown.ACTION_UPDATE_MIDNIGHT"
 
-    fun scheduleMidnightUpdate(context: Context) {
+    fun scheduleMidnightUpdate(context: Context, clock: Clock = Clock.systemDefaultZone()) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ExpressiveCountdownWidgetReceiver::class.java).apply {
             action = ACTION_MIDNIGHT_UPDATE
@@ -24,7 +25,7 @@ object MidnightUpdateScheduler {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val now = ZonedDateTime.now()
+        val now = ZonedDateTime.now(clock)
         val nextMidnight = now.toLocalDate()
             .plusDays(1)
             .atStartOfDay(now.zone)

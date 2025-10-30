@@ -14,6 +14,8 @@ materialIconsExtendedAndroid = "1.7.8"
 kotlinxSerialization = "1.9.0"
 materialColorUtilities = "1.13.0"
 materialKolor = "4.0.2"
+mockitoCore = "5.20.0"
+mockitoKotlin = "6.1.0"
 rules = "1.7.0"
 runner = "1.7.0"
 
@@ -42,6 +44,8 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 material = { group = "com.google.android.material", name = "material", version.ref = "materialColorUtilities" }
 material-kolor = { group = "com.materialkolor", name = "material-kolor", version.ref = "materialKolor" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
