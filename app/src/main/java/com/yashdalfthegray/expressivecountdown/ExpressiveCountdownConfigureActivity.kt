@@ -65,6 +65,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -355,8 +356,13 @@ private fun ConfigureScreen(
         val target = Instant.ofEpochMilli(millis)
             .atZone(ZoneId.of("UTC"))
             .toLocalDate()
-        val n = daysLeft(Clock.systemDefaultZone(), target)
-        if (n == 1L) stringResource(R.string.one_day) else context.getString(R.string.many_days, n)
+        val n = daysLeft(Clock.systemDefaultZone(), target, clampToZero = false)
+
+        when {
+            n == 0L -> LocalResources.current.getString(R.string.today)
+            n > 0L -> "$n ${LocalResources.current.getQuantityString(R.plurals.days_left, n.toInt())}"
+            else -> "${n.unaryMinus()} ${LocalResources.current.getQuantityString(R.plurals.days_ago, n.unaryMinus().toInt())}"
+        }
     } ?: stringResource(R.string.config_pick_date)
 
     val canComplete = dateState.selectedDateMillis != null &&
