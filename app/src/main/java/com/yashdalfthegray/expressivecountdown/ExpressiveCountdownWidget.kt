@@ -33,6 +33,7 @@ import androidx.glance.background
 import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
 import androidx.glance.material3.ColorProviders
+import androidx.glance.text.TextAlign
 import kotlinx.serialization.json.Json
 
 class ExpressiveCountdownWidget : GlanceAppWidget() {
@@ -93,8 +94,8 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
             ) {
                 val target = targetString?.let { LocalDate.parse(it) }
 
-                val daysLeftStr: String = if (target == null) {
-                    context.getString(R.string.config_pick_date)
+                val (numberText, labelText) = if (target == null) {
+                    "" to context.getString(R.string.config_pick_date)
                 } else {
                     val days = daysLeft(
                         java.time.Clock.systemDefaultZone(),
@@ -102,16 +103,14 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                         clampToZero = false
                     )
                     when {
-                        days == 0L -> context.getString(R.string.today)
-                        days > 0L -> context.resources.getQuantityString(
+                        days == 0L -> context.getString(R.string.today) to ""
+                        days > 0L -> days.toString() to context.resources.getQuantityString(
                             R.plurals.days_left,
                             days.toInt(),
-                            days
                         )
-                        else -> context.resources.getQuantityString(
+                        else -> days.unaryMinus().toString() to context.resources.getQuantityString(
                             R.plurals.days_ago,
                             days.unaryMinus().toInt(),
-                            days.unaryMinus()
                         )
                     }
                 }
@@ -119,7 +118,8 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                 Log.d("ExpressiveCountdownWidget", "imageUri: $imageUriString")
 
                 WidgetContent(
-                    daysLeftStr = daysLeftStr,
+                    countdownNumberText = numberText,
+                    countdownLabelText = labelText,
                     title = title ?: "",
                     backgroundImage = backgroundImage
                 )
@@ -129,7 +129,8 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
 
     @Composable
     private fun WidgetContent(
-        daysLeftStr: String,
+        countdownNumberText: String,
+        countdownLabelText: String,
         title: String,
         backgroundImage: ImageProvider?
     ) {
@@ -189,13 +190,27 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
 
                 Spacer(modifier = GlanceModifier.defaultWeight())
 
-                Text(
-                    text = daysLeftStr,
-                    style = TextStyle(
-                        fontSize = countdownNumberFontSize,
-                        color = GlanceTheme.colors.primary,
+                if (countdownNumberText.isNotBlank()) {
+                    Text(
+                        text = countdownNumberText,
+                        style = TextStyle(
+                            fontSize = countdownNumberFontSize,
+                            color = GlanceTheme.colors.primary,
+                            textAlign = TextAlign.End
+                        )
                     )
-                )
+                }
+
+                if (countdownLabelText.isNotBlank()) {
+                    Text(
+                        text = countdownLabelText,
+                        style = TextStyle(
+                            fontSize = countdownLabelFontSize,
+                            color = GlanceTheme.colors.primary,
+                            textAlign = TextAlign.End
+                        )
+                    )
+                }
             }
         }
     }
