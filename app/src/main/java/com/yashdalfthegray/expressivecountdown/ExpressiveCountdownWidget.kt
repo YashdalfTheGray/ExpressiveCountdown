@@ -33,7 +33,7 @@ import androidx.glance.background
 import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
 import androidx.glance.material3.ColorProviders
-import androidx.glance.text.TextAlign
+import androidx.glance.text.FontWeight
 import kotlinx.serialization.json.Json
 
 class ExpressiveCountdownWidget : GlanceAppWidget() {
@@ -184,6 +184,7 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                         style = TextStyle(
                             fontSize = titleFontSize,
                             color = GlanceTheme.colors.onSurface,
+                            fontWeight = FontWeight.Bold
                         )
                     )
                 }
@@ -196,7 +197,7 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                         style = TextStyle(
                             fontSize = countdownNumberFontSize,
                             color = GlanceTheme.colors.primary,
-                            textAlign = TextAlign.End
+                            fontWeight = FontWeight.Bold
                         )
                     )
                 }
@@ -207,7 +208,7 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                         style = TextStyle(
                             fontSize = countdownLabelFontSize,
                             color = GlanceTheme.colors.primary,
-                            textAlign = TextAlign.End
+                            fontWeight = FontWeight.Bold
                         )
                     )
                 }
