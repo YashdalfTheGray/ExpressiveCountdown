@@ -1,4 +1,4 @@
-name: Test
+name: Build and test
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  test-and-build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurim'
+          distribution: 'temurin'
 
       - name: Grant Gradle the right permissions
         run: chmod +x gradlew
