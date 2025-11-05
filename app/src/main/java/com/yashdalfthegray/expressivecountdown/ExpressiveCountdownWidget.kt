@@ -96,8 +96,24 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                 val daysLeftStr: String = if (target == null) {
                     context.getString(R.string.config_pick_date)
                 } else {
-                    val days = daysLeft(java.time.Clock.systemDefaultZone(), target)
-                    context.resources.getQuantityString(R.plurals.days_left, days.toInt(), days)
+                    val days = daysLeft(
+                        java.time.Clock.systemDefaultZone(),
+                        target,
+                        clampToZero = false
+                    )
+                    when {
+                        days == 0L -> context.getString(R.string.today)
+                        days > 0L -> context.resources.getQuantityString(
+                            R.plurals.days_left,
+                            days.toInt(),
+                            days
+                        )
+                        else -> context.resources.getQuantityString(
+                            R.plurals.days_ago,
+                            days.unaryMinus().toInt(),
+                            days.unaryMinus()
+                        )
+                    }
                 }
 
                 Log.d("ExpressiveCountdownWidget", "imageUri: $imageUriString")
@@ -124,10 +140,15 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
             size.width < 160.dp -> 18.sp
             else -> 28.sp
         }
-        val countdownFontSize = when {
+        val countdownNumberFontSize = when {
             size.width < 120.dp -> 16.sp
             size.width < 160.dp -> 24.sp
             else -> 36.sp
+        }
+        val countdownLabelFontSize = when {
+            size.width < 120.dp -> 12.sp
+            size.width < 160.dp -> 18.sp
+            else -> 28.sp
         }
 
         Box(
@@ -171,7 +192,7 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                 Text(
                     text = daysLeftStr,
                     style = TextStyle(
-                        fontSize = countdownFontSize,
+                        fontSize = countdownNumberFontSize,
                         color = GlanceTheme.colors.primary,
                     )
                 )
