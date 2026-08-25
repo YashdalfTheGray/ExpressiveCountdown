@@ -1,8 +1,11 @@
 package com.yashdalfthegray.expressivecountdown
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.util.Log
+import androidx.exifinterface.media.ExifInterface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -76,10 +79,11 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
 
             val backgroundImage = if (!imageUriString.isNullOrEmpty()) {
                 try {
-                    val options = BitmapFactory.Options().apply {
-                        inSampleSize = 2
-                    }
-                    val bitmap = BitmapFactory.decodeFile(imageUriString, options)
+                    val bitmap = decodeSampledAndOrientedBitmap(
+                        imageUriString,
+                        MAX_BACKGROUND_IMAGE_DIMENSION_PX,
+                        MAX_BACKGROUND_IMAGE_DIMENSION_PX
+                    )
                     if (bitmap != null) ImageProvider(bitmap) else null
                 } catch (e: Exception) {
                     Log.e("ExpressiveCountdownWidget", "Failed to load image", e)
@@ -214,5 +218,75 @@ class ExpressiveCountdownWidget : GlanceAppWidget() {
                 }
             }
         }
+    }
+}
+
+// Widgets top out at 160x120dp; RemoteViews also enforces a per-device bitmap
+// memory budget, so decode background photos down to a size that comfortably
+// fits both instead of holding a full camera-resolution bitmap in memory.
+private const val MAX_BACKGROUND_IMAGE_DIMENSION_PX = 640
+
+private fun calculateInSampleSize(
+    options: BitmapFactory.Options,
+    reqWidth: Int,
+    reqHeight: Int
+): Int {
+    val height = options.outHeight
+    val width = options.outWidth
+    var inSampleSize = 1
+
+    if (height > reqHeight || width > reqWidth) {
+        val halfHeight = height / 2
+        val halfWidth = width / 2
+
+        while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+            inSampleSize *= 2
+        }
+    }
+
+    return inSampleSize
+}
+
+// Camera photos are usually stored in the sensor's native orientation with an
+// EXIF tag saying how to rotate them for display; BitmapFactory ignores that
+// tag, so without this the widget background comes out sideways/mirrored.
+private fun decodeSampledAndOrientedBitmap(
+    path: String,
+    reqWidth: Int,
+    reqHeight: Int
+): Bitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeFile(path, bounds)
+
+    val options = BitmapFactory.Options().apply {
+        inSampleSize = calculateInSampleSize(bounds, reqWidth, reqHeight)
+    }
+    val bitmap = BitmapFactory.decodeFile(path, options) ?: return null
+
+    val orientation = ExifInterface(path).getAttributeInt(
+        ExifInterface.TAG_ORIENTATION,
+        ExifInterface.ORIENTATION_NORMAL
+    )
+
+    val matrix = Matrix()
+    when (orientation) {
+        ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+        ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+        ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+        ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.postScale(-1f, 1f)
+        ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.postScale(1f, -1f)
+        ExifInterface.ORIENTATION_TRANSPOSE -> {
+            matrix.postRotate(90f)
+            matrix.postScale(-1f, 1f)
+        }
+        ExifInterface.ORIENTATION_TRANSVERSE -> {
+            matrix.postRotate(270f)
+            matrix.postScale(-1f, 1f)
+        }
+        else -> return bitmap
+    }
+
+    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true).also {
+        if (it !== bitmap) bitmap.recycle()
     }
 }

@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.material)
     implementation(libs.material.kolor)
+    implementation(libs.androidx.exifinterface)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.mockito.core)
